@@ -1,35 +1,24 @@
-export default function DashboardLayout({
-    children,
-}) {
+import Sidebar from "@/components/dashboard/Sidebar";
+import Navbar from "@/components/dashboard/Navbar";
 
-    return (
+export default function DashboardLayout({ children }) {
+  return (
+    <div className="flex h-screen bg-slate-100">
 
-        <div className="flex h-screen">
+      <Sidebar />
 
-            <div className="w-72 bg-slate-900 text-white">
+      <div className="flex-1 flex flex-col overflow-hidden">
 
-                Sidebar
+        <Navbar />
 
-            </div>
+        <main className="flex-1 overflow-y-auto p-6">
 
-            <div className="flex-1">
+          {children}
 
-                <div className="h-16 border-b flex items-center px-6">
+        </main>
 
-                    Navbar
+      </div>
 
-                </div>
-
-                <div className="p-6">
-
-                    {children}
-
-                </div>
-
-            </div>
-
-        </div>
-
-    );
-
+    </div>
+  );
 }

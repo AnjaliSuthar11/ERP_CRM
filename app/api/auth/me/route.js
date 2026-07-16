@@ -17,6 +17,7 @@ export async function GET() {
       return NextResponse.json(
         {
           success: false,
+          message: "Unauthorized",
         },
         {
           status: 401,
@@ -28,17 +29,30 @@ export async function GET() {
 
     const user = await User.findById(decoded.id).select("-password");
 
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User Not Found",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       user,
     });
-  } catch {
+  } catch (err) {
     return NextResponse.json(
       {
         success: false,
+        message: err.message,
       },
       {
-        status: 401,
+        status: 500,
       }
     );
   }
