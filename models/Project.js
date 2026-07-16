@@ -15,19 +15,34 @@ const projectSchema = new mongoose.Schema(
       uppercase: true,
     },
 
-    clientName: {
-      type: String,
-      default: "",
+    client: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Client",
+      required: true,
     },
 
-    description: {
-      type: String,
-      default: "",
+    manager: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
     },
 
-    startDate: Date,
+    team: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
 
-    endDate: Date,
+    startDate: {
+      type: Date,
+      required: true,
+    },
+
+    endDate: {
+      type: Date,
+      required: true,
+    },
 
     budget: {
       type: Number,
@@ -37,25 +52,35 @@ const projectSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        "NOT_STARTED",
+        "PLANNING",
         "IN_PROGRESS",
         "ON_HOLD",
         "COMPLETED",
+        "CANCELLED",
       ],
-      default: "NOT_STARTED",
+      default: "PLANNING",
     },
 
-    manager: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+    priority: {
+      type: String,
+      enum: [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "URGENT",
+      ],
+      default: "MEDIUM",
     },
 
-    team: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    progress: {
+      type: Number,
+      default: 0,
+    },
+
+    description: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

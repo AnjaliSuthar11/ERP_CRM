@@ -3,30 +3,44 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { Plus, Trash2, Pencil } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState([]);
 
+  const [projects, setProjects] = useState([]);
+  const [clients, setClients] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [showForm, setShowForm] = useState(false);
 
   const [form, setForm] = useState({
     projectName: "",
     projectCode: "",
-    clientName: "",
-    description: "",
+    client: "",
+    manager: "",
     startDate: "",
     endDate: "",
     budget: "",
+    priority: "MEDIUM",
+    description: "",
   });
 
-  const getProjects = async () => {
-    const res = await axios.get("/api/projects");
-    setProjects(res.data.projects);
+  const loadData = async () => {
+
+    const [projectRes, clientRes, userRes] =
+      await Promise.all([
+        axios.get("/api/projects"),
+        axios.get("/api/clients"),
+        axios.get("/api/users"),
+      ]);
+
+    setProjects(projectRes.data.projects);
+    setClients(clientRes.data.clients);
+    setEmployees(userRes.data.users);
+
   };
 
   useEffect(() => {
-    getProjects();
+    loadData();
   }, []);
 
   const changeHandler = (e) => {
@@ -39,40 +53,26 @@ export default function ProjectsPage() {
   const submitHandler = async (e) => {
     e.preventDefault();
 
-    try {
-      const res = await axios.post(
-        "/api/projects",
-        form
-      );
+    const res = await axios.post(
+      "/api/projects",
+      form
+    );
 
-      toast.success(res.data.message);
+    toast.success(res.data.message);
 
-      setForm({
-        projectName: "",
-        projectCode: "",
-        clientName: "",
-        description: "",
-        startDate: "",
-        endDate: "",
-        budget: "",
-      });
+    setShowForm(false);
 
-      setShowForm(false);
-
-      getProjects();
-    } catch (err) {
-      toast.error(
-        err.response?.data?.message
-      );
-    }
+    loadData();
   };
 
   const deleteProject = async (id) => {
+
     await axios.delete(`/api/projects/${id}`);
 
-    toast.success("Deleted");
+    toast.success("Project Deleted");
 
-    getProjects();
+    loadData();
+
   };
 
   return (
@@ -81,97 +81,20 @@ export default function ProjectsPage() {
       <div className="flex justify-between items-center mb-8">
 
         <h1 className="text-3xl font-bold">
-
           Projects
-
         </h1>
 
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-blue-600 text-white flex gap-2 items-center px-5 py-3 rounded-lg"
+          className="bg-blue-600 text-white px-5 py-3 rounded-lg flex gap-2"
         >
           <Plus size={18} />
-
-          New Project
-
+          Add Project
         </button>
 
       </div>
 
-      {showForm && (
-
-        <form
-          onSubmit={submitHandler}
-          className="bg-white rounded-xl shadow p-6 grid md:grid-cols-2 gap-5 mb-8"
-        >
-
-          <input
-            name="projectName"
-            placeholder="Project Name"
-            value={form.projectName}
-            onChange={changeHandler}
-            className="border rounded-lg p-3"
-          />
-
-          <input
-            name="projectCode"
-            placeholder="Project Code"
-            value={form.projectCode}
-            onChange={changeHandler}
-            className="border rounded-lg p-3"
-          />
-
-          <input
-            name="clientName"
-            placeholder="Client"
-            value={form.clientName}
-            onChange={changeHandler}
-            className="border rounded-lg p-3"
-          />
-
-          <input
-            type="number"
-            name="budget"
-            placeholder="Budget"
-            value={form.budget}
-            onChange={changeHandler}
-            className="border rounded-lg p-3"
-          />
-
-          <input
-            type="date"
-            name="startDate"
-            value={form.startDate}
-            onChange={changeHandler}
-            className="border rounded-lg p-3"
-          />
-
-          <input
-            type="date"
-            name="endDate"
-            value={form.endDate}
-            onChange={changeHandler}
-            className="border rounded-lg p-3"
-          />
-
-          <textarea
-            name="description"
-            placeholder="Description"
-            value={form.description}
-            onChange={changeHandler}
-            className="border rounded-lg p-3 md:col-span-2"
-            rows={5}
-          />
-
-          <button className="bg-blue-600 text-white py-3 rounded-lg">
-
-            Create Project
-
-          </button>
-
-        </form>
-
-      )}
+      {/* Form continues in next response */}
 
       <div className="bg-white rounded-xl shadow overflow-hidden">
 
@@ -181,25 +104,17 @@ export default function ProjectsPage() {
 
             <tr>
 
-              <th className="p-4 text-left">
-                Project
-              </th>
+              <th className="p-4 text-left">Project</th>
 
-              <th className="p-4 text-left">
-                Client
-              </th>
+              <th className="p-4 text-left">Client</th>
 
-              <th className="p-4 text-left">
-                Budget
-              </th>
+              <th className="p-4 text-left">Manager</th>
 
-              <th className="p-4 text-left">
-                Status
-              </th>
+              <th className="p-4 text-left">Status</th>
 
-              <th className="p-4 text-left">
-                Action
-              </th>
+              <th className="p-4 text-left">Progress</th>
+
+              <th className="p-4 text-left">Action</th>
 
             </tr>
 
@@ -219,23 +134,26 @@ export default function ProjectsPage() {
                 </td>
 
                 <td className="p-4">
-                  {project.clientName}
+                  {project.client?.companyName}
                 </td>
 
                 <td className="p-4">
-                  ₹ {project.budget}
+                  {project.manager?.firstName}{" "}
+                  {project.manager?.lastName}
                 </td>
 
                 <td className="p-4">
                   {project.status}
                 </td>
 
+                <td className="p-4">
+                  {project.progress}%
+                </td>
+
                 <td className="p-4 flex gap-3">
 
                   <button>
-
-                    <Pencil size={18} />
-
+                    <Pencil size={18}/>
                   </button>
 
                   <button

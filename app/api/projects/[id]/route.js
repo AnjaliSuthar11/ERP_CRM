@@ -7,6 +7,7 @@ export async function GET(req, { params }) {
   await connectDB();
 
   const project = await Project.findById(params.id)
+    .populate("client")
     .populate("manager")
     .populate("team");
 
